@@ -47,6 +47,15 @@ class Lottery(sp.Contract):
         self.data.tickets_available = self.data.max_tickets
 
     @sp.entry_point
+    def change_ticket_cost(self, new_ticket_cost):
+        sp.set_type(new_ticket_cost, sp.TMutez)
+
+        sp.verify(sp.sender == self.data.admin, "NOT_AUTHORISED")
+        sp.verify(self.data.tickets_available == self.data.max_tickets, "A GAME IS ONGOING")
+
+        self.data.ticket_cost = new_ticket_cost
+
+    @sp.entry_point
     def default(self):
         sp.failwith("NOT ALLOWED")
 
@@ -75,3 +84,7 @@ def test():
     # end_game
     scenario.h2("end_game (valid test)")
     scenario += lottery.end_game(21).run(sender = admin)
+
+    # change ticket cost
+    scenario.h2("change_ticket_cost (valid test)")
+    scenario += lottery.change_ticket_cost(sp.tez(2)).run(sender = admin)
