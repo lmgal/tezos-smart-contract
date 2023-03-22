@@ -63,6 +63,7 @@ class Lottery(sp.Contract):
         sp.verify(self.data.tickets_available == self.data.max_tickets, "A GAME IS ONGOING")
 
         self.data.max_tickets = new_max_tickets
+        self.data.tickets_available = self.data.max_tickets
 
     @sp.entry_point
     def default(self):
