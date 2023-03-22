@@ -11,18 +11,19 @@ class Lottery(sp.Contract):
         )
     
     @sp.entry_point
-    def buy_ticket(self, params):
+    def buy_ticket(self, ticket_count):
+        sp.set_type(ticket_count, sp.TNat)
 
         # Sanity checks
         sp.verify(self.data.tickets_available > 0, "NO TICKETS AVAILABLE")
-        sp.verify(sp.amount >= sp.mul(self.data.ticket_cost, params.ticket_count), "INVALID AMOUNT")
+        sp.verify(sp.amount >= sp.mul(self.data.ticket_cost, ticket_count), "INVALID AMOUNT")
 
         # Storage updates
         self.data.players[sp.len(self.data.players)] = sp.sender
-        self.data.tickets_available = sp.as_nat(self.data.tickets_available - params.ticket_count)
+        self.data.tickets_available = sp.as_nat(self.data.tickets_available - ticket_count)
 
         # Return extra tez balance to the sender
-        extra_balance = sp.amount - sp.mul(self.data.ticket_cost, params.ticket_count)
+        extra_balance = sp.amount - sp.mul(self.data.ticket_cost, ticket_count)
         sp.if extra_balance > sp.mutez(0):
             sp.send(sp.sender, extra_balance)
 
@@ -65,11 +66,11 @@ def test():
 
     # buy_ticket
     scenario.h2("buy_ticket (valid test)")
-    scenario += lottery.buy_ticket(ticket_count = 1).run(amount = sp.tez(1), sender = alice)
-    scenario += lottery.buy_ticket(ticket_count = 2).run(amount = sp.tez(2), sender = bob)
+    scenario += lottery.buy_ticket(1).run(amount = sp.tez(1), sender = alice)
+    scenario += lottery.buy_ticket(2).run(amount = sp.tez(2), sender = bob)
 
     scenario.h2("buy_ticket (failure test)")
-    scenario += lottery.buy_ticket(ticket_count = 1).run(amount = sp.tez(1), sender = alice, valid = False)
+    scenario += lottery.buy_ticket(1).run(amount = sp.tez(1), sender = alice, valid = False)
 
     # end_game
     scenario.h2("end_game (valid test)")
